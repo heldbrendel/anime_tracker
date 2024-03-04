@@ -17,6 +17,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 
 	const pkce_challenge = generatePkceChallenge(43);
 	cookies.set('oauth_code_verifier', pkce_challenge.code_verifier, { path: '/' });
+	cookies.set('oauth_code_challenge', pkce_challenge.code_challenge, { path: '/' });
 
 	const client_id = env.MAL_CLIENT_ID;
 	const redirect_uri = env.MAL_REDIRECT_URI;

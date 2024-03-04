@@ -2,13 +2,14 @@ import type { PageServerLoad } from './$types';
 import { env } from '$env/dynamic/private';
 import { error, redirect } from '@sveltejs/kit';
 import crypto from 'crypto';
-import { generatePkceChallenge, verifyChallenge } from '$lib/server/auth';
+import { verifyChallenge } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 
 	const code = url.searchParams.get('code');
 	const code_verifier = cookies.get('oauth_code_verifier');
-	if (code === null || code_verifier === undefined) {
+	const code_challenge = cookies.get('oauth_code_challenge');
+	if (code === null || code_verifier === undefined || code_challenge === undefined) {
 		console.log('code challenge or code challenge hash invalid');
 		error(500, 'unexpected response');
 	} else if (verifyChallenge(code_verifier, code)) {
@@ -37,18 +38,14 @@ export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 		error(500, 'invalid environment configuration');
 	}
 
-	const pkce_challenge = generatePkceChallenge(43);
-
 	const formBody = [
 		encodeURIComponent('client_id') + '=' + encodeURIComponent(clientId),
 		encodeURIComponent('client_secret') + '=' + encodeURIComponent(clientSecret),
 		encodeURIComponent('redirect_uri') + '=' + encodeURIComponent(redirectUri),
 		encodeURIComponent('grant_type') + '=' + encodeURIComponent('authorization_code'),
 		encodeURIComponent('code') + '=' + encodeURIComponent(code),
-		encodeURIComponent('code_verifier') + '=' + encodeURIComponent(pkce_challenge.code_verifier)
+		encodeURIComponent('code_verifier') + '=' + encodeURIComponent(code_challenge)
 	].join('&');
-
-	console.log(formBody);
 
 	const response = await fetch('https://myanimelist.net/v1/oauth2/token', {
 		method: 'POST',
@@ -57,13 +54,12 @@ export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 		},
 		body: formBody
 	});
-	if (response.status <= 400) {
+	if (response.status >= 400) {
 		console.log(await response.json());
 		error(500, 'error during authentication');
 	} else {
 		const responseJson = await response.json();
 		cookies.set('oauth_token', JSON.stringify(responseJson), { path: '/' });
-
 		redirect(302, '/');
 	}
 };
