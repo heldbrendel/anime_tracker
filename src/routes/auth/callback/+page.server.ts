@@ -2,16 +2,16 @@ import type { PageServerLoad } from './$types';
 import { env } from '$env/dynamic/private';
 import { error, redirect } from '@sveltejs/kit';
 import crypto from 'crypto';
-import { pkceChallenge, verifyChallenge } from '$lib/server/auth';
+import { generatePkceChallenge, verifyChallenge } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 
-	const codeChallenge = url.searchParams.get('code');
-	const codeVerifier = cookies.get('oauth_code_challenge');
-	if (codeChallenge === null || codeVerifier === undefined) {
+	const code = url.searchParams.get('code');
+	const code_verifier = cookies.get('oauth_code_verifier');
+	if (code === null || code_verifier === undefined) {
 		console.log('code challenge or code challenge hash invalid');
 		error(500, 'unexpected response');
-	} else if (verifyChallenge(codeVerifier, codeChallenge)) {
+	} else if (verifyChallenge(code_verifier, code)) {
 		// ensure the code challenge value matches the hash of the cookie field for the code challenge
 		console.log('code challenge does not match');
 		error(500, 'unexpected response');
@@ -37,22 +37,25 @@ export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 		error(500, 'invalid environment configuration');
 	}
 
-	const challenge = pkceChallenge(128);
+	const pkce_challenge = generatePkceChallenge(43);
 
-	const data = new URLSearchParams();
-	data.append('client_id', clientId);
-	data.append('client_secret', clientSecret);
-	// Value MUST be set to “authorization_code”.
-	data.append('grant_type', 'authorization_code');
-	// The authorization code you got in the previous step.
-	data.append('code', codeChallenge);
-	data.append('redirect_uri', redirectUri);
-	// FIXME Failed to verify code verifier
-	data.append('code_verifier', challenge.code_verifier);
+	const formBody = [
+		encodeURIComponent('client_id') + '=' + encodeURIComponent(clientId),
+		encodeURIComponent('client_secret') + '=' + encodeURIComponent(clientSecret),
+		encodeURIComponent('redirect_uri') + '=' + encodeURIComponent(redirectUri),
+		encodeURIComponent('grant_type') + '=' + encodeURIComponent('authorization_code'),
+		encodeURIComponent('code') + '=' + encodeURIComponent(code),
+		encodeURIComponent('code_verifier') + '=' + encodeURIComponent(pkce_challenge.code_verifier)
+	].join('&');
+
+	console.log(formBody);
 
 	const response = await fetch('https://myanimelist.net/v1/oauth2/token', {
 		method: 'POST',
-		body: data
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded'
+		},
+		body: formBody
 	});
 	if (response.status <= 400) {
 		console.log(await response.json());

@@ -25,7 +25,7 @@ export function generateChallenge(codeVerifier: string) {
 		.digest('base64url');
 }
 
-export function pkceChallenge(length?: number) {
+export function generatePkceChallenge(length?: number) {
 	if (!length) {
 		length = 43;
 	}
