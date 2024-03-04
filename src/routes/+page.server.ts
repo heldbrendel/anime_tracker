@@ -1,7 +1,17 @@
 import type { Actions, PageServerLoad } from './$types';
 import prisma from '$lib/prisma';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ fetch, cookies }) => {
+
+	const authToken = cookies.get('oauth_token');
+	if (authToken !== null) {
+		fetch('https://api.myanimelist.net/v2/users/@me', {
+			headers: {
+				'Authorization': 'Bearer '
+			}
+		});
+	}
+
 	const response = await prisma.anime.findMany();
 	return { animes: response };
 };
