@@ -54,14 +54,14 @@
 				</TableHeadCell>
 			</TableHead>
 			<TableBody>
-				{#each data.animes as anime (anime.mal_id)}
+				{#each data.animes as anime (anime.node.id)}
 					<TableBodyRow>
-						<TableBodyCell><a href="https://myanimelist.net/anime/{anime.mal_id}" target="_blank">{anime.mal_id}</a>
+						<TableBodyCell><a href="https://myanimelist.net/anime/{anime.node.id}" target="_blank">{anime.node.id}</a>
 						</TableBodyCell>
-						<TableBodyCell>{anime.title}</TableBodyCell>
-						<TableBodyCell>{anime.alternate_title}</TableBodyCell>
-						<TableBodyCell>{anime.score}</TableBodyCell>
-						<TableBodyCell>{anime.status}</TableBodyCell>
+						<TableBodyCell>{anime.node.title}</TableBodyCell>
+						<TableBodyCell>{anime.node.alternative_titles.en}</TableBodyCell>
+						<TableBodyCell>{anime.node.mean}</TableBodyCell>
+						<TableBodyCell>{anime.node.my_list_status.status}</TableBodyCell>
 						<TableBodyCell>
 							<Button on:click={() => console.log("")} outline size="xs">Refresh</Button>
 							|
