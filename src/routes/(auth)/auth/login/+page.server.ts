@@ -1,13 +1,14 @@
-import type { PageServerLoad } from './$types';
 import { env } from '$env/dynamic/private';
 import * as crypto from 'crypto';
 import { error, redirect } from '@sveltejs/kit';
-import { generatePkceChallenge } from '$lib/server/auth';
-
+import { generatePkceChallenge, getAuthInfo } from '$lib/server/auth';
+import type { PageServerLoad } from './$types';
+import { getUserInfo } from '$lib/server/mal_client';
 
 export const load: PageServerLoad = async ({ cookies }) => {
-	if (cookies.get('oauth_token')) {
-		// user is already logged in
+	const authInfo = getAuthInfo(cookies);
+	if (authInfo && (await getUserInfo(authInfo.access_token))) {
+		// user is already logged in and valid
 		redirect(302, '/');
 	}
 

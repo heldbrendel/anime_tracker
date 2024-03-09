@@ -1,4 +1,4 @@
-import type { PageServerLoad, Actions } from './$types';
+import type { PageServerLoad, Actions } from '../../../../.svelte-kit/types/src/routes';
 import prisma from '$lib/prisma';
 
 export const load: PageServerLoad = async () => {

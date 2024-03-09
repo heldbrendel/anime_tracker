@@ -1,14 +1,15 @@
-import type { Actions, PageServerLoad } from './$types';
 import { getUserInfo, getUserAnimeList } from '$lib/server/mal_client';
-import { error } from '@sveltejs/kit';
+import { type Actions, error } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
+import { getAuthInfo } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 
-	const auth_token_cookie = cookies.get('oauth_token');
-	if (auth_token_cookie !== undefined) {
-		const auth_token = JSON.parse(auth_token_cookie) as AuthInfo;
-		console.log(await getUserInfo(auth_token.access_token));
-		const animeList = await getUserAnimeList(auth_token.access_token);
+	const authInfo = getAuthInfo(cookies)
+
+	if (authInfo) {
+		console.log(await getUserInfo(authInfo.access_token));
+		const animeList = await getUserAnimeList(authInfo.access_token);
 		if (animeList) {
 			return { animes: animeList };
 		} else {

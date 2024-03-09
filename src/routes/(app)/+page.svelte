@@ -49,9 +49,6 @@
 				<TableHeadCell>Alternate Title</TableHeadCell>
 				<TableHeadCell>Score</TableHeadCell>
 				<TableHeadCell>Status</TableHeadCell>
-				<TableHeadCell>
-					<span class="sr-only">Actions</span>
-				</TableHeadCell>
 			</TableHead>
 			<TableBody>
 				{#each data.animes as anime (anime.node.id)}
@@ -62,11 +59,6 @@
 						<TableBodyCell>{anime.node.alternative_titles.en}</TableBodyCell>
 						<TableBodyCell>{anime.node.mean}</TableBodyCell>
 						<TableBodyCell>{anime.node.my_list_status.status}</TableBodyCell>
-						<TableBodyCell>
-							<Button on:click={() => console.log("")} outline size="xs">Refresh</Button>
-							|
-							<Button on:click={() => console.log("")} outline size="xs">Delete</Button>
-						</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

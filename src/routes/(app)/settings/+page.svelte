@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import type { PageData } from '../../../../.svelte-kit/types/src/routes';
 	import { Button, Input, Label } from 'flowbite-svelte';
 
 	export let data: PageData;

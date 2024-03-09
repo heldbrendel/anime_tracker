@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import type { Cookies } from '@sveltejs/kit';
 
 function getRandomValues(size: number) {
 	return crypto.getRandomValues(new Uint8Array(size));
@@ -45,4 +46,16 @@ export function generatePkceChallenge(length?: number) {
 export function verifyChallenge(codeVerifier: string, expectedChallenge: string) {
 	const actualChallenge = generateChallenge(codeVerifier);
 	return actualChallenge === expectedChallenge;
+}
+
+export function getAuthInfo(cookies: Cookies) {
+	const auth_token_cookie = cookies.get('oauth_token');
+	if (auth_token_cookie !== undefined) {
+		try {
+			return JSON.parse(auth_token_cookie) as AuthInfo;
+		} catch (e) {
+			console.log('error parsing oauth info', e);
+			cookies.delete('oauth_token', { path: '/' });
+		}
+	}
 }

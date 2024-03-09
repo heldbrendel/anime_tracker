@@ -1,4 +1,4 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad } from '../../../../../.svelte-kit/types/src/routes';
 import { env } from '$env/dynamic/private';
 import { error, redirect } from '@sveltejs/kit';
 import crypto from 'crypto';
