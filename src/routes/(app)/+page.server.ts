@@ -3,7 +3,7 @@ import { type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	return { animes: (await getUserAnimeList(locals.auth.access_token)).sort((a, b) => a.id - b.id) };
+	return { animes: (await getUserAnimeList(locals.auth.access_token)).sort((a, b) => b.id - a.id) };
 };
 
 export const actions = {
