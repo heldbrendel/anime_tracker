@@ -1,31 +1,32 @@
-import { getUserInfo, getUserAnimeList } from '$lib/server/mal_client';
-import { type Actions, error } from '@sveltejs/kit';
+import { addAnimeToList, getAnime, getUserAnimeList } from '$lib/server/mal_client';
+import { type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getAuthInfo } from '$lib/server/auth';
 
-export const load: PageServerLoad = async ({ cookies }) => {
-
-	const authInfo = getAuthInfo(cookies)
-
-	if (authInfo) {
-		console.log(await getUserInfo(authInfo.access_token));
-		const animeList = await getUserAnimeList(authInfo.access_token);
-		if (animeList) {
-			return { animes: animeList };
-		} else {
-			return { animes: [] };
-		}
-	} else {
-		error(500, 'unexpected auth state');
-	}
+export const load: PageServerLoad = async ({ locals }) => {
+	return { animes: (await getUserAnimeList(locals.auth.access_token)).sort((a, b) => a.id - b.id) };
 };
 
 export const actions = {
-	add: async (event) => {
-		const data = await event.request.formData();
+	add: async ({ request, locals }) => {
+		const data = await request.formData();
 		const malId = data.get('mal_id');
 		if (typeof malId === 'string') {
-			console.log(malId);
+			await Promise.all(malId.split(',').map(id => +id.trim()).map(async (id) => {
+					const anime = await getAnime(id, locals.auth.access_token);
+					if (anime) {
+						if (!anime.my_list_status) {
+							console.log('adding ' + id + ' to list');
+							await addAnimeToList(id, locals.auth.access_token);
+						} else {
+							console.log('anime with ' + id + ' is already in list');
+							// already in list
+						}
+					} else {
+						console.log('anime with ' + id + ' does not exist');
+						// invalid id
+					}
+				}
+			));
 		}
 	}
 } satisfies Actions;

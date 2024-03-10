@@ -1,4 +1,7 @@
 import axios from 'axios';
+import type { Anime } from '$lib/anime';
+import type { UserInfo } from '$lib/user_info';
+import type { Status } from '$lib/status';
 
 export async function getUserInfo(access_token: string) {
 	try {
@@ -24,15 +27,73 @@ export async function getUserAnimeList(access_token: string) {
 				Authorization: 'Bearer ' + access_token
 			},
 			params: {
-				fields: 'alternative_titles,mean,my_list_status,num_episodes,start_season'
+				fields: 'alternative_titles,mean,my_list_status,num_episodes,start_season',
+				limit: 1000
 			}
 		});
 		if (response.status === 200) {
-			return response.data.data as Array<Anime>;
+			return (await response.data).data.map((item: { node: Anime }) => item.node) as Array<Anime>;
 		} else {
-			return undefined;
+			return [];
 		}
 	} catch (error) {
 		console.error(error);
+		return [];
+	}
+}
+
+export async function getAnime(id: number, access_token: string) {
+	try {
+		const response = await axios.get(`https://api.myanimelist.net/v2/anime/${id}`,
+			{
+				headers: {
+					Authorization: 'Bearer ' + access_token
+				},
+				params: {
+					fields: 'my_list_status',
+					limit: 1000
+				}
+			});
+		return await response.data as Anime;
+	} catch (error) {
+		console.error(error);
+	}
+}
+
+export async function addAnimeToList(id: number, access_token: string) {
+	try {
+		const response = await axios.patch(`https://api.myanimelist.net/v2/anime/${id}/my_list_status`,
+			{
+				status: 'plan_to_watch'
+			},
+			{
+				headers: {
+					Authorization: 'Bearer ' + access_token,
+					'Content-Type': 'application/x-www-form-urlencoded'
+				}
+			});
+		return response.status === 200;
+	} catch (error) {
+		console.error(error);
+		return false;
+	}
+}
+
+export async function setAnimeStatus(id: number, status: Status, access_token: string) {
+	try {
+		const response = await axios.patch(`https://api.myanimelist.net/v2/anime/${id}/my_list_status`,
+			{
+				status: status
+			},
+			{
+				headers: {
+					Authorization: 'Bearer ' + access_token,
+					'Content-Type': 'application/x-www-form-urlencoded'
+				}
+			});
+		return response.status === 200;
+	} catch (error) {
+		console.error(error);
+		return false;
 	}
 }

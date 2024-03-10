@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import type { Cookies } from '@sveltejs/kit';
+import type { AuthInfo } from '$lib/auth_info';
 
 function getRandomValues(size: number) {
 	return crypto.getRandomValues(new Uint8Array(size));
@@ -48,7 +49,7 @@ export function verifyChallenge(codeVerifier: string, expectedChallenge: string)
 	return actualChallenge === expectedChallenge;
 }
 
-export function getAuthInfo(cookies: Cookies) {
+export function getAuthInfo(cookies: Cookies): AuthInfo | undefined {
 	const auth_token_cookie = cookies.get('oauth_token');
 	if (auth_token_cookie !== undefined) {
 		try {

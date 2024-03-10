@@ -9,6 +9,7 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
+	import { LinkOutline } from 'flowbite-svelte-icons';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -42,23 +43,32 @@
 
 <div class="w-full grid grid-cols-3 gap-4">
 	<div class="p-4 col-span-3">
-		<Table>
+		<Table class="table-fixed">
 			<TableHead>
-				<TableHeadCell>Id</TableHeadCell>
+				<TableHeadCell class="w-32">Id</TableHeadCell>
 				<TableHeadCell>Title</TableHeadCell>
 				<TableHeadCell>Alternate Title</TableHeadCell>
-				<TableHeadCell>Score</TableHeadCell>
-				<TableHeadCell>Status</TableHeadCell>
+				<TableHeadCell class="w-20">Score</TableHeadCell>
+				<TableHeadCell class="w-32">Season</TableHeadCell>
+				<TableHeadCell class="w-32">Status</TableHeadCell>
+				<TableHeadCell class="w-32">Episodes</TableHeadCell>
 			</TableHead>
 			<TableBody>
-				{#each data.animes as anime (anime.node.id)}
+				{#each data.animes as anime (anime.id)}
 					<TableBodyRow>
-						<TableBodyCell><a href="https://myanimelist.net/anime/{anime.node.id}" target="_blank">{anime.node.id}</a>
+						<TableBodyCell><a href="https://myanimelist.net/anime/{anime.id}" target="_blank" class="flex items-center hover:text-blue-600"><LinkOutline size="xs" /><span>{anime.id}</span>
+						</a>
 						</TableBodyCell>
-						<TableBodyCell>{anime.node.title}</TableBodyCell>
-						<TableBodyCell>{anime.node.alternative_titles.en}</TableBodyCell>
-						<TableBodyCell>{anime.node.mean}</TableBodyCell>
-						<TableBodyCell>{anime.node.my_list_status.status}</TableBodyCell>
+						<TableBodyCell class="whitespace-normal">{anime.title}</TableBodyCell>
+						<TableBodyCell class="whitespace-normal">{anime.alternative_titles.en}</TableBodyCell>
+						<TableBodyCell>
+							{#if anime.mean}{anime.mean}{/if}
+						</TableBodyCell>
+						<TableBodyCell>
+							{#if anime.start_season}{anime.start_season.year} {anime.start_season.season}{/if}
+						</TableBodyCell>
+						<TableBodyCell>{anime.my_list_status.status}</TableBodyCell>
+						<TableBodyCell>{anime.my_list_status.num_episodes_watched} / {anime.num_episodes}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

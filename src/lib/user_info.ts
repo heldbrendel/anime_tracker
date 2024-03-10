@@ -1,4 +1,4 @@
-interface UserInfo {
+export type UserInfo = {
 	id: number,
 	name: string,
 	location: string,
