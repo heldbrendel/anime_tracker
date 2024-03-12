@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import { Button } from 'flowbite-svelte';
 
 	export let data: PageData;
 
@@ -12,4 +13,6 @@
 		'&code_challenge_method=plain';
 </script>
 
-<a href="{loginUrl}">Login</a>
+<div class="flex justify-center m-5">
+	<Button href="{loginUrl}">Login</Button>
+</div>

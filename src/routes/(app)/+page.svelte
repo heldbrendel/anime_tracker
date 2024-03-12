@@ -23,7 +23,7 @@
 	let showToast = false;
 	let toastMessage = '';
 
-	function autoHideTast() {
+	function autoHideToast() {
 		setTimeout(() => {
 			showToast = false;
 			toastMessage = '';
@@ -38,7 +38,7 @@
 		const data = (await response.json()) as { status: string, message: string };
 		toastMessage = data.message;
 		showToast = true;
-		autoHideTast();
+		autoHideToast();
 		if (data.status) {
 			addId = '';
 			formModal = false;
