@@ -1,9 +1,11 @@
 <script lang="ts">
 	import {
 		Button,
+		ButtonGroup,
 		Input,
 		Label,
 		Modal,
+		Select,
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -12,10 +14,39 @@
 		TableHeadCell,
 		Toast
 	} from 'flowbite-svelte';
-	import { CheckCircleSolid, LinkOutline } from 'flowbite-svelte-icons';
+	import { ArrowUpRightFromSquareOutline, CheckCircleSolid, MinusSolid, PlusSolid } from 'flowbite-svelte-icons';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
+
+	const seasons = [...new Set(data.animes.filter(v => v.start_season).map(v => v.start_season.season))]
+		.map(v => {
+			return { value: v, name: v };
+		});
+	let selectedSeasonFilter: string;
+	const years = [...new Set(data.animes.filter(v => v.start_season).map(v => v.start_season.year))]
+		.map(v => {
+			return { value: v, name: v };
+		});
+	let selectedYearFilter: number;
+	const status = [
+		{ value: 'plan_to_watch', name: 'Plan to watch' },
+		{ value: 'watching', name: 'Watching' },
+		{ value: 'completed', name: 'Completed' },
+		{ value: 'dropped', name: 'Dropped' }
+	];
+	let selectedStatusFilter: string;
+	let searchInput: string;
+
+	$: filteredItems = data.animes
+		.filter(a => selectedStatusFilter === 'all' || a.my_list_status.status === selectedStatusFilter)
+		.filter(a => selectedSeasonFilter == 'all' || (a.start_season && a.start_season.season === selectedSeasonFilter))
+		.filter(a => selectedYearFilter == 0 || (a.start_season && a.start_season.year === selectedYearFilter))
+		.filter(a => !searchInput ||
+			searchInput.length < 3 ||
+			a.title.toLocaleLowerCase().includes(searchInput) ||
+			a.alternative_titles.en.toLocaleLowerCase().includes(searchInput) ||
+			a.alternative_titles.ja.toLocaleLowerCase().includes(searchInput));
 
 	let formModal = false;
 	let addId = '';
@@ -53,8 +84,44 @@
 		</div>
 		<div class="block items-center">
 			<div class="flex items-center w-full">
+				<div class="flex items-center space-x-4">
+					<Label>
+						Search
+						<Input bind:value={searchInput} />
+					</Label>
+					<Label>
+						Year
+						<Select placeholder="" bind:value={selectedYearFilter}>
+							<option selected value="0">All</option>
+							{#each years as { value, name }}
+								<option {value}>{name}</option>
+							{/each}
+						</Select>
+					</Label>
+					<Label>
+						Season
+						<Select placeholder="" bind:value={selectedSeasonFilter}>
+							<option selected value="all">All</option>
+							{#each seasons as { value, name }}
+								<option {value}>{name}</option>
+							{/each}
+						</Select>
+					</Label>
+					<Label>
+						Status
+						<Select placeholder="" bind:value={selectedStatusFilter}>
+							<option selected value="all">All</option>
+							{#each status as { value, name }}
+								<option {value}>{name}</option>
+							{/each}
+						</Select>
+					</Label>
+				</div>
 				<div class="hidden pl-2 space-x-1"></div>
-				<Button class="ml-auto" on:click={() => (formModal = true)}>Add</Button>
+				<Button class="ml-auto" on:click={() => (formModal = true)}>
+					<PlusSolid />
+					Add
+				</Button>
 				<Modal bind:open={formModal} size="xs" autoclose={false} class="w-full">
 					<span class="flex flex-col space-y-6">
 						<Label class="space-y-2">
@@ -73,21 +140,22 @@
 	<div class="p-4 col-span-3">
 		<Table class="table-fixed">
 			<TableHead>
-				<TableHeadCell class="w-32">Id</TableHeadCell>
+				<TableHeadCell class="w-24">Id</TableHeadCell>
 				<TableHeadCell>Title</TableHeadCell>
 				<TableHeadCell>Alternate Title</TableHeadCell>
 				<TableHeadCell class="w-20">Score</TableHeadCell>
-				<TableHeadCell class="w-32">Season</TableHeadCell>
-				<TableHeadCell class="w-32">Status</TableHeadCell>
-				<TableHeadCell class="w-32">Episodes</TableHeadCell>
+				<TableHeadCell class="w-20">Season</TableHeadCell>
+				<TableHeadCell class="w-20">Season</TableHeadCell>
+				<TableHeadCell class="w-52">Status</TableHeadCell>
+				<TableHeadCell class="w-52">Episodes</TableHeadCell>
 			</TableHead>
 			<TableBody>
-				{#each data.animes as anime (anime.id)}
+				{#each filteredItems as anime (anime.id)}
 					<TableBodyRow>
 						<TableBodyCell><a href="https://myanimelist.net/anime/{anime.id}" target="_blank"
 															class="flex items-center hover:text-blue-600">
-							<LinkOutline size="xs" />
 							<span>{anime.id}</span>
+							<ArrowUpRightFromSquareOutline size="xs" />
 						</a>
 						</TableBodyCell>
 						<TableBodyCell class="whitespace-normal">{anime.title}</TableBodyCell>
@@ -96,10 +164,26 @@
 							{#if anime.mean}{anime.mean}{/if}
 						</TableBodyCell>
 						<TableBodyCell>
-							{#if anime.start_season}{anime.start_season.year} {anime.start_season.season}{/if}
+							{#if anime.start_season}{anime.start_season.year}{/if}
 						</TableBodyCell>
-						<TableBodyCell>{anime.my_list_status.status}</TableBodyCell>
-						<TableBodyCell>{anime.my_list_status.num_episodes_watched} / {anime.num_episodes}</TableBodyCell>
+						<TableBodyCell>
+							{#if anime.start_season}{anime.start_season.season}{/if}
+						</TableBodyCell>
+						<TableBodyCell>
+							<Select size="sm" items="{status}" value="{anime.my_list_status.status}" />
+						</TableBodyCell>
+						<TableBodyCell>
+							<ButtonGroup size="xs">
+								<Button outline size="xs">
+									<MinusSolid />
+								</Button>
+								<Button disabled outline class="w-20">{anime.my_list_status.num_episodes_watched}
+									/ {anime.num_episodes}</Button>
+								<Button outline size="xs">
+									<PlusSolid />
+								</Button>
+							</ButtonGroup>
+						</TableBodyCell>
 					</TableBodyRow>
 				{/each}
 			</TableBody>

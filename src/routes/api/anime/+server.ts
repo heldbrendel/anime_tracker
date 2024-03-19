@@ -1,6 +1,26 @@
 import { error, json, type RequestHandler } from '@sveltejs/kit';
-import { addAnimeToList, getAnime } from '$lib/server/mal_client';
+import { addAnimeToList, getAnime, getUserAnimeList } from '$lib/server/mal_client';
+import { addAnimeListToCache, getAnimeListFromCache } from '$lib/server/cache';
 
+export const GET: RequestHandler = async ({ locals }) => {
+	const authInfo = locals.auth;
+	if (authInfo === undefined) {
+		error(401, 'unauthorized');
+	}
+
+	const userInfo = locals.user;
+	if (userInfo === undefined) {
+		error(401, 'unauthorized');
+	}
+
+	let animeList = getAnimeListFromCache(userInfo.name);
+	if (!animeList) {
+		animeList = (await getUserAnimeList(authInfo.access_token)).sort((a, b) => b.id - a.id);
+		addAnimeListToCache(userInfo.name, animeList);
+	}
+	const response = { animeList };
+	return json(response);
+};
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	const authInfo = locals.auth;
