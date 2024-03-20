@@ -29,7 +29,7 @@
 			return { value: v, name: v };
 		});
 	let selectedYearFilter: number;
-	const status = [
+	const watchStatus = [
 		{ value: 'plan_to_watch', name: 'Plan to watch' },
 		{ value: 'watching', name: 'Watching' },
 		{ value: 'completed', name: 'Completed' },
@@ -61,7 +61,7 @@
 		}, 6000);
 	}
 
-	async function add() {
+	async function addAnimeEntry() {
 		const response = await fetch('/api/anime', {
 			method: 'POST',
 			body: JSON.stringify({ id: addId })
@@ -74,6 +74,17 @@
 			addId = '';
 			formModal = false;
 		}
+	}
+
+	async function updateWatchingStatus(animeId: number, target: EventTarget | null) {
+		if (target !== null) {
+			const optionElement = target as HTMLOptionElement;
+			console.log('updating watching status: ' + animeId + ' ' + optionElement.value);
+		}
+	}
+
+	async function updateNumberOfWatchedEpisodes(animeId: number, numberOfEpisodesWatched: number) {
+		console.log('updating number of episodes status: ' + animeId + ' ' + numberOfEpisodesWatched);
 	}
 </script>
 
@@ -111,7 +122,7 @@
 						Status
 						<Select placeholder="" bind:value={selectedStatusFilter}>
 							<option selected value="all">All</option>
-							{#each status as { value, name }}
+							{#each watchStatus as { value, name }}
 								<option {value}>{name}</option>
 							{/each}
 						</Select>
@@ -128,7 +139,7 @@
 							<span>My Anime List ID</span>
 							<Input type="text" name="mal_id" bind:value={addId} />
 						</Label>
-						<Button on:click={add}>Add</Button>
+						<Button on:click={addAnimeEntry}>Add</Button>
 					</span>
 				</Modal>
 			</div>
@@ -170,16 +181,19 @@
 							{#if anime.start_season}{anime.start_season.season}{/if}
 						</TableBodyCell>
 						<TableBodyCell>
-							<Select size="sm" items="{status}" value="{anime.my_list_status.status}" />
+							<Select items={watchStatus} size="sm" value="{anime.my_list_status.status}"
+											on:change={(event) => updateWatchingStatus(anime.id, event.target)} />
 						</TableBodyCell>
 						<TableBodyCell>
 							<ButtonGroup size="xs">
-								<Button outline size="xs">
+								<Button outline size="xs"
+												on:click={() => updateNumberOfWatchedEpisodes(anime.id, anime.my_list_status.num_episodes_watched - 1) }>
 									<MinusSolid />
 								</Button>
 								<Button disabled outline class="w-20">{anime.my_list_status.num_episodes_watched}
 									/ {anime.num_episodes}</Button>
-								<Button outline size="xs">
+								<Button outline size="xs"
+												on:click={() => updateNumberOfWatchedEpisodes(anime.id, anime.my_list_status.num_episodes_watched + 1) }>
 									<PlusSolid />
 								</Button>
 							</ButtonGroup>
