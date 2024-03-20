@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import type { Cookies } from '@sveltejs/kit';
 import type { AuthInfo } from '$lib/auth_info';
+import { decryptData } from '$lib/server/encryption';
 
 function getRandomValues(size: number) {
 	return crypto.getRandomValues(new Uint8Array(size));
@@ -53,7 +54,7 @@ export function getAuthInfo(cookies: Cookies): AuthInfo | undefined {
 	const auth_token_cookie = cookies.get('oauth_token');
 	if (auth_token_cookie !== undefined) {
 		try {
-			return JSON.parse(auth_token_cookie) as AuthInfo;
+			return JSON.parse(decryptData(auth_token_cookie)) as AuthInfo;
 		} catch (e) {
 			console.log('error parsing oauth info', e);
 			cookies.delete('oauth_token', { path: '/' });

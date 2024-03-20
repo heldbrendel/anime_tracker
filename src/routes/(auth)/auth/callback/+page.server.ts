@@ -1,8 +1,9 @@
-import type { PageServerLoad } from '../../../../../.svelte-kit/types/src/routes';
 import { env } from '$env/dynamic/private';
+import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import crypto from 'crypto';
 import { verifyChallenge } from '$lib/server/auth';
+import { decryptData, encryptData } from '$lib/server/encryption';
 
 export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 
@@ -12,7 +13,7 @@ export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 	if (code === null || code_verifier === undefined || code_challenge === undefined) {
 		console.log('code challenge or code challenge hash invalid');
 		error(500, 'unexpected response');
-	} else if (verifyChallenge(code_verifier, code)) {
+	} else if (verifyChallenge(decryptData(code_verifier), code)) {
 		// ensure the code challenge value matches the hash of the cookie field for the code challenge
 		console.log('code challenge does not match');
 		error(500, 'unexpected response');
@@ -23,7 +24,7 @@ export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 	if (responseState === null || cookieState === undefined) {
 		console.log('state from response or state from cookie not available');
 		error(500, 'unexpected response');
-	} else if (crypto.createHash('sha256').update(cookieState).digest('base64url') !== responseState) {
+	} else if (crypto.createHash('sha256').update(decryptData(cookieState)).digest('base64url') !== responseState) {
 		// ensure the state value matches the hash of the cookie field for the state
 		console.log('state does not match');
 		error(500, 'state error');
@@ -44,7 +45,7 @@ export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 		encodeURIComponent('redirect_uri') + '=' + encodeURIComponent(redirectUri),
 		encodeURIComponent('grant_type') + '=' + encodeURIComponent('authorization_code'),
 		encodeURIComponent('code') + '=' + encodeURIComponent(code),
-		encodeURIComponent('code_verifier') + '=' + encodeURIComponent(code_challenge)
+		encodeURIComponent('code_verifier') + '=' + encodeURIComponent(decryptData(code_challenge))
 	].join('&');
 
 	const response = await fetch('https://myanimelist.net/v1/oauth2/token', {
@@ -59,7 +60,7 @@ export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 		error(500, 'error during authentication');
 	} else {
 		const responseJson = await response.json();
-		cookies.set('oauth_token', JSON.stringify(responseJson), { path: '/' });
+		cookies.set('oauth_token', encryptData(JSON.stringify(responseJson)), { path: '/' });
 		redirect(302, '/');
 	}
 };

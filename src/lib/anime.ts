@@ -1,4 +1,4 @@
-import type { Status } from '$lib/status';
+import type { WatchingStatus } from '$lib/watching_status';
 import type { Season } from '$lib/season';
 
 export type Anime = {
@@ -15,7 +15,7 @@ export type Anime = {
 	}
 	mean: number,
 	my_list_status: {
-		status: Status,
+		status: WatchingStatus,
 		score: number,
 		num_episodes_watched: number,
 		is_rewatching: false,

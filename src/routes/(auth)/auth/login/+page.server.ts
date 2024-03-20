@@ -4,6 +4,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { generatePkceChallenge, getAuthInfo } from '$lib/server/auth';
 import type { PageServerLoad } from './$types';
 import { getUserInfo } from '$lib/server/mal_client';
+import { encryptData } from '$lib/server/encryption';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	const authInfo = getAuthInfo(cookies);
@@ -13,12 +14,12 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	}
 
 	const state_uuid = crypto.randomUUID();
-	cookies.set('oauth_state', state_uuid, { path: '/' });
+	cookies.set('oauth_state', encryptData(state_uuid), { path: '/' });
 	const state_hash = crypto.createHash('sha256').update(state_uuid).digest('base64url');
 
 	const pkce_challenge = generatePkceChallenge(43);
-	cookies.set('oauth_code_verifier', pkce_challenge.code_verifier, { path: '/' });
-	cookies.set('oauth_code_challenge', pkce_challenge.code_challenge, { path: '/' });
+	cookies.set('oauth_code_verifier', encryptData(pkce_challenge.code_verifier), { path: '/' });
+	cookies.set('oauth_code_challenge', encryptData(pkce_challenge.code_challenge), { path: '/' });
 
 	const client_id = env.MAL_CLIENT_ID;
 	const redirect_uri = env.MAL_REDIRECT_URI;

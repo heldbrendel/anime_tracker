@@ -1,10 +1,12 @@
 import axios from 'axios';
 import type { Anime } from '$lib/anime';
 import type { UserInfo } from '$lib/user_info';
-import type { Status } from '$lib/status';
+import type { WatchingStatus } from '$lib/watching_status';
 
 export async function getUserInfo(access_token: string) {
 	try {
+		// TODO use cache
+
 		const response = await axios.get('https://api.myanimelist.net/v2/users/@me', {
 			headers: {
 				Authorization: 'Bearer ' + access_token
@@ -79,7 +81,7 @@ export async function addAnimeToList(id: number, access_token: string) {
 	}
 }
 
-export async function setAnimeStatus(id: number, status: Status, access_token: string) {
+export async function setAnimeStatus(id: number, status: WatchingStatus, access_token: string) {
 	try {
 		const response = await axios.patch(`https://api.myanimelist.net/v2/anime/${id}/my_list_status`,
 			{
