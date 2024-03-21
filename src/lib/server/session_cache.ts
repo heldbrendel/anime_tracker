@@ -1,6 +1,6 @@
 import type { Cookies } from '@sveltejs/kit';
-import type { AuthInfo } from '$lib/auth_info';
 import { decryptData, encryptData } from '$lib/server/encryption';
+import crypto from 'crypto';
 
 import NodeCache from 'node-cache';
 import type { SessionInfo } from '$lib/server/session_info';
@@ -10,34 +10,18 @@ const sessionCache = new NodeCache({
 	stdTTL: 604800 // a week in seconds
 });
 
-export function getSessionInfo(cookies: Cookies): string | undefined {
-	const session_token = cookies.get('session-token');
+export function getSessionInfo(cookies: Cookies): SessionInfo | undefined {
+	const session_token = cookies.get('session_token');
 	if (session_token !== undefined) {
-		return decryptData(session_token);
-	}
-}
-
-export function addSessionInfo(cookies: Cookies, sessionId: string) {
-	cookies.set('session-token', encryptData(sessionId), { path: '/' });
-}
-
-// TODO remove and replace using session cache
-export function getAuthInfo(cookies: Cookies): AuthInfo | undefined {
-	const auth_token_cookie = cookies.get('oauth_token');
-	if (auth_token_cookie !== undefined) {
-		try {
-			return JSON.parse(decryptData(auth_token_cookie)) as AuthInfo;
-		} catch (e) {
-			console.log('error parsing oauth info', e);
-			cookies.delete('oauth_token', { path: '/' });
+		const sessionId = decryptData(session_token);
+		if (sessionId) {
+			return sessionCache.get<SessionInfo>(sessionId);
 		}
 	}
 }
 
-export function addSessionInfoToCache(sessionId: string, sessionInfo: SessionInfo): void {
+export function storeSessionInfo(cookies: Cookies, sessionInfo: SessionInfo) {
+	const sessionId = crypto.randomUUID();
 	sessionCache.set<SessionInfo>(sessionId, sessionInfo);
-}
-
-export function getSessionInfoFromCache(sessionId: string): SessionInfo | undefined {
-	return sessionCache.get<SessionInfo>(sessionId);
+	cookies.set('session_token', encryptData(sessionId), { path: '/' });
 }

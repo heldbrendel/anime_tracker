@@ -4,11 +4,11 @@ import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getUserInfo } from '$lib/server/mal_client';
 import { encryptData } from '$lib/server/encryption';
-import { getAuthInfo } from '$lib/server/session_cache';
+import { getSessionInfo } from '$lib/server/session_cache';
 import { generatePkceChallenge } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ cookies }) => {
-	const authInfo = getAuthInfo(cookies);
+	const authInfo = getSessionInfo(cookies);
 	if (authInfo && (await getUserInfo(authInfo.access_token))) {
 		// user is already logged in and valid
 		redirect(302, '/');

@@ -1,14 +1,12 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
-import type { AuthInfo } from '$lib/auth_info';
-import type { UserInfo } from '$lib/user_info';
+import type { SessionInfo } from '$lib/server/session_info';
 
 declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			auth: AuthInfo | undefined;
-			user: UserInfo | undefined;
+			session: SessionInfo | undefined;
 		}
 
 		// interface PageData {}

@@ -3,10 +3,11 @@ import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import crypto from 'crypto';
 import { verifyChallenge } from '$lib/server/auth';
-import { decryptData, encryptData } from '$lib/server/encryption';
+import { decryptData } from '$lib/server/encryption';
+import { storeSessionInfo } from '$lib/server/session_cache';
+import { getUserInfo } from '$lib/server/mal_client';
 
 export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
-
 	const code = url.searchParams.get('code');
 	const code_verifier = cookies.get('oauth_code_verifier');
 	const code_challenge = cookies.get('oauth_code_challenge');
@@ -24,7 +25,10 @@ export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 	if (responseState === null || cookieState === undefined) {
 		console.log('state from response or state from cookie not available');
 		error(500, 'unexpected response');
-	} else if (crypto.createHash('sha256').update(decryptData(cookieState)).digest('base64url') !== responseState) {
+	} else if (
+		crypto.createHash('sha256').update(decryptData(cookieState)).digest('base64url') !==
+		responseState
+	) {
 		// ensure the state value matches the hash of the cookie field for the state
 		console.log('state does not match');
 		error(500, 'state error');
@@ -60,7 +64,13 @@ export const load: PageServerLoad = async ({ cookies, url, fetch }) => {
 		error(500, 'error during authentication');
 	} else {
 		const responseJson = await response.json();
-		cookies.set('oauth_token', encryptData(JSON.stringify(responseJson)), { path: '/' });
+		const userInfo = await getUserInfo(responseJson.access_token);
+		const sessionInfo = { ...responseJson, ...userInfo };
+		storeSessionInfo(cookies, sessionInfo);
+
+		cookies.delete('oauth_code_challenge', { path: '/' });
+		cookies.delete('oauth_code_verifier', { path: '/' });
+
 		redirect(302, '/');
 	}
 };

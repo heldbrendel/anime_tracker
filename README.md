@@ -12,6 +12,5 @@ Alternative frontend for My Anime List.
 - Change status of entry
 - Change number of watches episodes of an entry
 - Cache anime list on server to reduce api calls
-- Display username in top right
 - Logout button and function
 - Styling

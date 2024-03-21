@@ -4,20 +4,15 @@ import { error } from '@sveltejs/kit';
 import { addAnimeListToCache, getAnimeListFromCache } from '$lib/server/anime_cache';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const authInfo = locals.auth;
-	if (!authInfo) {
+	const sessionInfo = locals.session;
+	if (!sessionInfo) {
 		error(401, 'unauthorized');
 	}
 
-	const userInfo = locals.user;
-	if (!userInfo) {
-		error(401, 'unauthorized');
-	}
-
-	let animeList = getAnimeListFromCache(userInfo.name);
+	let animeList = getAnimeListFromCache(sessionInfo.name);
 	if (!animeList) {
-		animeList = (await getUserAnimeList(authInfo.access_token)).sort((a, b) => b.id - a.id);
-		addAnimeListToCache(userInfo.name, animeList);
+		animeList = (await getUserAnimeList(sessionInfo.access_token)).sort((a, b) => b.id - a.id);
+		addAnimeListToCache(sessionInfo.name, animeList);
 	}
 	return { animes: animeList };
 };

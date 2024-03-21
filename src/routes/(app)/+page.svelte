@@ -14,7 +14,7 @@
 		TableHeadCell,
 		Toast
 	} from 'flowbite-svelte';
-	import { ArrowUpRightFromSquareOutline, CheckCircleSolid, MinusSolid, PlusSolid } from 'flowbite-svelte-icons';
+	import { ArrowUpRightFromSquareOutline, CheckCircleSolid, MinusOutline, PlusOutline } from 'flowbite-svelte-icons';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -130,7 +130,7 @@
 				</div>
 				<div class="hidden pl-2 space-x-1"></div>
 				<Button class="ml-auto" on:click={() => (formModal = true)}>
-					<PlusSolid />
+					<PlusOutline />
 					Add
 				</Button>
 				<Modal bind:open={formModal} size="xs" autoclose={false} class="w-full">
@@ -188,13 +188,13 @@
 							<ButtonGroup size="xs">
 								<Button outline size="xs"
 												on:click={() => updateNumberOfWatchedEpisodes(anime.id, anime.my_list_status.num_episodes_watched - 1) }>
-									<MinusSolid />
+									<MinusOutline />
 								</Button>
 								<Button disabled outline class="w-20">{anime.my_list_status.num_episodes_watched}
 									/ {anime.num_episodes}</Button>
 								<Button outline size="xs"
 												on:click={() => updateNumberOfWatchedEpisodes(anime.id, anime.my_list_status.num_episodes_watched + 1) }>
-									<PlusSolid />
+									<PlusOutline />
 								</Button>
 							</ButtonGroup>
 						</TableBodyCell>
