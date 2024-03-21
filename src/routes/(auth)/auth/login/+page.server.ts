@@ -1,10 +1,11 @@
 import { env } from '$env/dynamic/private';
 import * as crypto from 'crypto';
 import { error, redirect } from '@sveltejs/kit';
-import { generatePkceChallenge, getAuthInfo } from '$lib/server/auth';
 import type { PageServerLoad } from './$types';
 import { getUserInfo } from '$lib/server/mal_client';
 import { encryptData } from '$lib/server/encryption';
+import { getAuthInfo } from '$lib/server/session_cache';
+import { generatePkceChallenge } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	const authInfo = getAuthInfo(cookies);

@@ -1,7 +1,4 @@
 import crypto from 'crypto';
-import type { Cookies } from '@sveltejs/kit';
-import type { AuthInfo } from '$lib/auth_info';
-import { decryptData } from '$lib/server/encryption';
 
 function getRandomValues(size: number) {
 	return crypto.getRandomValues(new Uint8Array(size));
@@ -18,16 +15,30 @@ function random(size: number) {
 	return result;
 }
 
+/**
+ * Generates a random string that can be used as verifier token
+ * during oauth authentication.
+ * @param length length of the random string
+ */
 function generateVerifier(length: number): string {
 	return random(length);
 }
 
+/**
+ * Generates a string that can be used as challenge token
+ * during oauth authentication.
+ * @param codeVerifier the verifier token to use for generating the challenge token
+ */
 export function generateChallenge(codeVerifier: string) {
 	return crypto.createHash('sha256')
 		.update(codeVerifier)
 		.digest('base64url');
 }
 
+/**
+ * Generates a verifier and challenge token for oauth authentication
+ * @param length length of the verifier token, length must be between 43 and 120, if no value is given defaults to 43
+ */
 export function generatePkceChallenge(length?: number) {
 	if (!length) {
 		length = 43;
@@ -45,19 +56,14 @@ export function generatePkceChallenge(length?: number) {
 	};
 }
 
+/**
+ * Checks if the challenge token generated from the verifier matches the expected challenge token
+ * @param codeVerifier verifier token to use for verification
+ * @param expectedChallenge the expected value of the challenge token
+ */
 export function verifyChallenge(codeVerifier: string, expectedChallenge: string) {
 	const actualChallenge = generateChallenge(codeVerifier);
 	return actualChallenge === expectedChallenge;
 }
 
-export function getAuthInfo(cookies: Cookies): AuthInfo | undefined {
-	const auth_token_cookie = cookies.get('oauth_token');
-	if (auth_token_cookie !== undefined) {
-		try {
-			return JSON.parse(decryptData(auth_token_cookie)) as AuthInfo;
-		} catch (e) {
-			console.log('error parsing oauth info', e);
-			cookies.delete('oauth_token', { path: '/' });
-		}
-	}
-}
+

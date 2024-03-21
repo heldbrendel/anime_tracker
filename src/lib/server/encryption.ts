@@ -27,7 +27,7 @@ const encryptionIV = crypto
 	.substring(0, 16);
 
 export function encryptData(data: string) {
-	const cipher = crypto.createCipheriv(encryptionMethod, key, encryptionIV);
+	const cipher = crypto.createCipheriv(encryptionMethod!, key, encryptionIV);
 	return Buffer.from(
 		cipher.update(data, 'utf8', 'hex') + cipher.final('hex')
 	).toString('base64');
@@ -35,7 +35,7 @@ export function encryptData(data: string) {
 
 export function decryptData(encryptedData: string) {
 	const buff = Buffer.from(encryptedData, 'base64');
-	const decipher = crypto.createDecipheriv(encryptionMethod, key, encryptionIV);
+	const decipher = crypto.createDecipheriv(encryptionMethod!, key, encryptionIV);
 	return (
 		decipher.update(buff.toString('utf8'), 'hex', 'utf8') +
 		decipher.final('utf8')

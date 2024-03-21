@@ -1,6 +1,6 @@
 import { error, type Handle, redirect } from '@sveltejs/kit';
 import { getUserInfo } from '$lib/server/mal_client';
-import { getAuthInfo } from '$lib/server/auth';
+import { getAuthInfo } from '$lib/server/session_cache';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const pathName = event.url.pathname;
