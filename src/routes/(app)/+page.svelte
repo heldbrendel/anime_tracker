@@ -36,21 +36,24 @@
 			a.alternative_titles.en.toLocaleLowerCase().includes(searchInput) ||
 			a.alternative_titles.ja.toLocaleLowerCase().includes(searchInput));
 
-	$: seasons = [...new Set(Array.from(animeMap.values()).filter(v => v.start_season).map(v => v.start_season.season))]
+	$: years = [...new Set(Array.from(animeMap.values())
+		.filter(v => v.start_season)
+		.map(v => v.start_season.year))]
 		.map(v => {
 			return { value: v, name: v };
-		});
-
-	$: years = [...new Set(Array.from(animeMap.values()).filter(v => v.start_season).map(v => v.start_season.year))]
-		.map(v => {
-			return { value: v, name: v };
-		});
+		}).sort((a, b) => a.value - b.value);
 
 	const watchStatus = [
 		{ value: 'plan_to_watch', name: 'Plan to watch' },
 		{ value: 'watching', name: 'Watching' },
 		{ value: 'completed', name: 'Completed' },
 		{ value: 'dropped', name: 'Dropped' }
+	];
+	const seasons = [
+		{ value: 'winter', name: 'Winter' },
+		{ value: 'spring', name: 'Spring' },
+		{ value: 'summer', name: 'Summer' },
+		{ value: 'fall', name: 'Fall' }
 	];
 
 	let formModal = false;
@@ -77,15 +80,7 @@
 				method: 'PATCH',
 				body: JSON.stringify({ status: optionElement.value })
 			});
-			const message = (await response.json());
-			if (message.success) {
-				const updatedAnime = message.anime;
-				animeMap.set(updatedAnime.id, updatedAnime);
-				animeMap = animeMap; // to cause update of reactive statements
-				showToastMessage('Update successful');
-			} else {
-				showToastMessage('Update failed');
-			}
+			processUpdateMessage(await response.json());
 		}
 	}
 
@@ -95,8 +90,11 @@
 			method: 'PATCH',
 			body: JSON.stringify({ num_episodes_watched: numberOfEpisodesWatched })
 		});
-		const message = (await response.json());
-		if (message.success) {
+		processUpdateMessage(await response.json());
+	}
+
+	function processUpdateMessage(message: { success: boolean, anime: Anime | undefined }) {
+		if (message.success && message.anime) {
 			const updatedAnime = message.anime;
 			animeMap.set(updatedAnime.id, updatedAnime);
 			animeMap = animeMap; // to cause update of reactive statements
