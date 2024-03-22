@@ -10,6 +10,12 @@ Alternative frontend for My Anime List.
 
 ## Usage
 
+To use an api client for My Anime List is required.
+Define the client id and client secret in the dotenv.
+
+Also define a secure secret key and iv value in the dotenv.
+This is used for encrypting session information in the cookie.
+
 ## To-Do
 
 - Logout button and function
