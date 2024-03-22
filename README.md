@@ -6,11 +6,11 @@ Alternative frontend for My Anime List.
 
 - List current anime list entries
 - Add entries to anime list
+- Update watch status and number of watched
+
+## Usage
 
 ## To-Do
 
-- Change status of entry
-- Change number of watches episodes of an entry
-- Cache anime list on server to reduce api calls
 - Logout button and function
 - Styling

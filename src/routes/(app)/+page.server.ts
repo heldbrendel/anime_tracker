@@ -9,10 +9,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 		error(401, 'unauthorized');
 	}
 
-	let animeList = getAnimeListFromCache(sessionInfo.name);
-	if (!animeList) {
-		animeList = (await getUserAnimeList(sessionInfo.access_token)).sort((a, b) => b.id - a.id);
-		addAnimeListToCache(sessionInfo.name, animeList);
+	let animeMap = getAnimeListFromCache(sessionInfo.name);
+	if (!animeMap) {
+		console.log('map not found in cache');
+		animeMap = new Map((await getUserAnimeList(sessionInfo.access_token)).map((anime) => [anime.id, anime]));
+		addAnimeListToCache(sessionInfo.name, animeMap);
 	}
-	return { animes: animeList };
+	return { animeMap: animeMap };
 };

@@ -5,8 +5,6 @@ import type { WatchingStatus } from '$lib/watching_status';
 
 export async function getUserInfo(access_token: string) {
 	try {
-		// TODO use cache
-
 		const response = await axios.get('https://api.myanimelist.net/v2/users/@me', {
 			headers: {
 				Authorization: 'Bearer ' + access_token
@@ -46,17 +44,16 @@ export async function getUserAnimeList(access_token: string) {
 
 export async function getAnime(id: number, access_token: string) {
 	try {
-		const response = await axios.get(`https://api.myanimelist.net/v2/anime/${id}`,
-			{
-				headers: {
-					Authorization: 'Bearer ' + access_token
-				},
-				params: {
-					fields: 'my_list_status',
-					limit: 1000
-				}
-			});
-		return await response.data as Anime;
+		const response = await axios.get(`https://api.myanimelist.net/v2/anime/${id}`, {
+			headers: {
+				Authorization: 'Bearer ' + access_token
+			},
+			params: {
+				fields: 'alternative_titles,mean,my_list_status,num_episodes,start_season',
+				limit: 1000
+			}
+		});
+		return (await response.data) as Anime;
 	} catch (error) {
 		console.error(error);
 	}
@@ -64,7 +61,8 @@ export async function getAnime(id: number, access_token: string) {
 
 export async function addAnimeToList(id: number, access_token: string) {
 	try {
-		const response = await axios.patch(`https://api.myanimelist.net/v2/anime/${id}/my_list_status`,
+		const response = await axios.patch(
+			`https://api.myanimelist.net/v2/anime/${id}/my_list_status`,
 			{
 				status: 'plan_to_watch'
 			},
@@ -73,7 +71,8 @@ export async function addAnimeToList(id: number, access_token: string) {
 					Authorization: 'Bearer ' + access_token,
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
-			});
+			}
+		);
 		return response.status === 200;
 	} catch (error) {
 		console.error(error);
@@ -83,7 +82,8 @@ export async function addAnimeToList(id: number, access_token: string) {
 
 export async function setAnimeStatus(id: number, status: WatchingStatus, access_token: string) {
 	try {
-		const response = await axios.patch(`https://api.myanimelist.net/v2/anime/${id}/my_list_status`,
+		const response = await axios.patch(
+			`https://api.myanimelist.net/v2/anime/${id}/my_list_status`,
 			{
 				status: status
 			},
@@ -92,7 +92,31 @@ export async function setAnimeStatus(id: number, status: WatchingStatus, access_
 					Authorization: 'Bearer ' + access_token,
 					'Content-Type': 'application/x-www-form-urlencoded'
 				}
-			});
+			}
+		);
+		console.log(`response status for setting status: ${response.status}`);
+		return response.status === 200;
+	} catch (error) {
+		console.error(error);
+		return false;
+	}
+}
+
+export async function setAnimeEpisodesWatched(id: number, numberOfEpisodesWatches: number, access_token: string) {
+	try {
+		const response = await axios.patch(
+			`https://api.myanimelist.net/v2/anime/${id}/my_list_status`,
+			{
+				num_watched_episodes: numberOfEpisodesWatches
+			},
+			{
+				headers: {
+					Authorization: 'Bearer ' + access_token,
+					'Content-Type': 'application/x-www-form-urlencoded'
+				}
+			}
+		);
+		console.log(`response status for setting number of episodes: ${response.status}`);
 		return response.status === 200;
 	} catch (error) {
 		console.error(error);

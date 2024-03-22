@@ -16,29 +16,17 @@
 	} from 'flowbite-svelte';
 	import { ArrowUpRightFromSquareOutline, CheckCircleSolid, MinusOutline, PlusOutline } from 'flowbite-svelte-icons';
 	import type { PageData } from './$types';
+	import type { Anime } from '$lib/anime';
 
 	export let data: PageData;
+	let animeMap: Map<number, Anime> = data.animeMap;
 
-	const seasons = [...new Set(data.animes.filter(v => v.start_season).map(v => v.start_season.season))]
-		.map(v => {
-			return { value: v, name: v };
-		});
 	let selectedSeasonFilter: string;
-	const years = [...new Set(data.animes.filter(v => v.start_season).map(v => v.start_season.year))]
-		.map(v => {
-			return { value: v, name: v };
-		});
 	let selectedYearFilter: number;
-	const watchStatus = [
-		{ value: 'plan_to_watch', name: 'Plan to watch' },
-		{ value: 'watching', name: 'Watching' },
-		{ value: 'completed', name: 'Completed' },
-		{ value: 'dropped', name: 'Dropped' }
-	];
 	let selectedStatusFilter: string;
 	let searchInput: string;
 
-	$: filteredItems = data.animes
+	$: filteredItems = Array.from(animeMap.values()).sort((a, b) => a.id - b.id)
 		.filter(a => selectedStatusFilter === 'all' || a.my_list_status.status === selectedStatusFilter)
 		.filter(a => selectedSeasonFilter == 'all' || (a.start_season && a.start_season.season === selectedSeasonFilter))
 		.filter(a => selectedYearFilter == 0 || (a.start_season && a.start_season.year === selectedYearFilter))
@@ -48,18 +36,25 @@
 			a.alternative_titles.en.toLocaleLowerCase().includes(searchInput) ||
 			a.alternative_titles.ja.toLocaleLowerCase().includes(searchInput));
 
+	$: seasons = [...new Set(Array.from(animeMap.values()).filter(v => v.start_season).map(v => v.start_season.season))]
+		.map(v => {
+			return { value: v, name: v };
+		});
+
+	$: years = [...new Set(Array.from(animeMap.values()).filter(v => v.start_season).map(v => v.start_season.year))]
+		.map(v => {
+			return { value: v, name: v };
+		});
+
+	const watchStatus = [
+		{ value: 'plan_to_watch', name: 'Plan to watch' },
+		{ value: 'watching', name: 'Watching' },
+		{ value: 'completed', name: 'Completed' },
+		{ value: 'dropped', name: 'Dropped' }
+	];
+
 	let formModal = false;
 	let addId = '';
-
-	let showToast = false;
-	let toastMessage = '';
-
-	function autoHideToast() {
-		setTimeout(() => {
-			showToast = false;
-			toastMessage = '';
-		}, 6000);
-	}
 
 	async function addAnimeEntry() {
 		const response = await fetch('/api/anime', {
@@ -67,9 +62,7 @@
 			body: JSON.stringify({ id: addId })
 		});
 		const data = (await response.json()) as { status: string, message: string };
-		toastMessage = data.message;
-		showToast = true;
-		autoHideToast();
+		showToastMessage(data.message);
 		if (data.status) {
 			addId = '';
 			formModal = false;
@@ -80,11 +73,49 @@
 		if (target !== null) {
 			const optionElement = target as HTMLOptionElement;
 			console.log('updating watching status: ' + animeId + ' ' + optionElement.value);
+			const response = await fetch('/api/anime/' + animeId, {
+				method: 'PATCH',
+				body: JSON.stringify({ status: optionElement.value })
+			});
+			const message = (await response.json());
+			if (message.success) {
+				const updatedAnime = message.anime;
+				animeMap.set(updatedAnime.id, updatedAnime);
+				animeMap = animeMap; // to cause update of reactive statements
+				showToastMessage('Update successful');
+			} else {
+				showToastMessage('Update failed');
+			}
 		}
 	}
 
 	async function updateNumberOfWatchedEpisodes(animeId: number, numberOfEpisodesWatched: number) {
 		console.log('updating number of episodes status: ' + animeId + ' ' + numberOfEpisodesWatched);
+		const response = await fetch(`/api/anime/${animeId}`, {
+			method: 'PATCH',
+			body: JSON.stringify({ num_episodes_watched: numberOfEpisodesWatched })
+		});
+		const message = (await response.json());
+		if (message.success) {
+			const updatedAnime = message.anime;
+			animeMap.set(updatedAnime.id, updatedAnime);
+			animeMap = animeMap; // to cause update of reactive statements
+			showToastMessage('Update successful');
+		} else {
+			showToastMessage('Update failed');
+		}
+	}
+
+	let showToast = false;
+	let toastMessage = '';
+
+	function showToastMessage(message: string) {
+		toastMessage = message;
+		showToast = true;
+		setTimeout(() => {
+			showToast = false;
+			toastMessage = '';
+		}, 6000);
 	}
 </script>
 
