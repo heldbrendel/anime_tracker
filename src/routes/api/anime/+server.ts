@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 	}
 	let animeList = getAnimeListFromCache(sessionInfo.name);
 	if (!animeList) {
-		animeList = (await getUserAnimeList(sessionInfo.access_token)).sort((a, b) => b.id - a.id);
+		animeList = new Map((await getUserAnimeList(sessionInfo.access_token)).map((anime) => [anime.id, anime]));
 		addAnimeListToCache(sessionInfo.name, animeList);
 	}
 	const response = { animeList };

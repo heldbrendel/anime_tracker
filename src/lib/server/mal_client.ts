@@ -59,6 +59,29 @@ export async function getAnime(id: number, access_token: string) {
 	}
 }
 
+export async function searchAnime(query: string, access_token: string) {
+	try {
+		const response = await axios.get('https://api.myanimelist.net/v2/anime', {
+			headers: {
+				Authorization: 'Bearer ' + access_token
+			},
+			params: {
+				fields: 'id,title,alternative_titles,mean,num_episodes,start_season',
+				limit: 10,
+				q: query
+			}
+		});
+		if (response.status === 200) {
+			return (await response.data).data.map((item: { node: Anime }) => item.node) as Array<Anime>;
+		} else {
+			return [];
+		}
+	} catch (error) {
+		console.error(error);
+		return [];
+	}
+}
+
 export async function addAnimeToList(id: number, access_token: string) {
 	try {
 		const response = await axios.patch(
