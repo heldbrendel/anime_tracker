@@ -2,6 +2,8 @@
 
 Alternative frontend for My Anime List.
 
+![example_screenshot.png](docs/img/example_screenshot.png)
+
 ## Features
 
 - List current anime list entries
@@ -12,9 +14,16 @@ Alternative frontend for My Anime List.
 
 To use an api client for My Anime List is required.
 Define the client id and client secret in the dotenv.
+A client can be created [here](https://myanimelist.net/apiconfig).
 
-Also define a secure secret key and iv value in the dotenv.
+Also define a secure random string that will be used to generate a secret key and iv value in the dotenv.
 This is used for encrypting session information in the cookie.
+
+For example, you can use:
+
+```shell
+cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1
+```
 
 ## To-Do
 
