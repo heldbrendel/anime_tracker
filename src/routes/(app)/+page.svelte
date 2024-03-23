@@ -30,11 +30,10 @@
 		.filter(a => selectedStatusFilter === 'all' || a.my_list_status.status === selectedStatusFilter)
 		.filter(a => selectedSeasonFilter == 'all' || (a.start_season && a.start_season.season === selectedSeasonFilter))
 		.filter(a => selectedYearFilter == 0 || (a.start_season && a.start_season.year === selectedYearFilter))
-		.filter(a => !searchInput ||
-			searchInput.length < 3 ||
-			a.title.toLocaleLowerCase().includes(searchInput) ||
-			a.alternative_titles.en.toLocaleLowerCase().includes(searchInput) ||
-			a.alternative_titles.ja.toLocaleLowerCase().includes(searchInput));
+		.filter(a => !searchInput || searchInput.length < 3 ||
+			a.title.toLocaleLowerCase().includes(searchInput.toLocaleLowerCase()) ||
+			a.alternative_titles.en.toLocaleLowerCase().includes(searchInput.toLocaleLowerCase()) ||
+			a.alternative_titles.ja.toLocaleLowerCase().includes(searchInput.toLocaleLowerCase()));
 
 	$: years = [...new Set(Array.from(animeMap.values())
 		.filter(v => v.start_season)
